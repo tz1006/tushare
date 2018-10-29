@@ -9,6 +9,8 @@ import tushare as ts
 from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+import futuquant as ft
+
 
 
 def datechange(date, change):
@@ -384,7 +386,7 @@ class model4():
     def __init__(self, date, rising_ratio=1.04):
         self.date = date
         self.rising_ratio = rising_ratio
-        self.dd = {}
+        self.df = pd.DataFrame(columns=['code', 'd0CLOSE', 'd1MA5', 'd1MA10', 'd2MA5', 'd2MA10', 'd3MA5', 'd3MA10', 'EvenPrice', 'EvenRatio', 'ClosePrice', 'CloseRatio', 'High', 'HighRatio', 'Low', 'LowRatio'])
     def model4(self, code, select_date, rising_ratio):
         start_date = datechange(select_date, -20)
         end_date = datechange(select_date, 8)
@@ -404,6 +406,7 @@ class model4():
         d2ma5 = hist_data.iloc[2]['ma5']
         d2ma10 = hist_data.iloc[2]['ma10']
         d3ma5 = hist_data.iloc[3]['ma5']
+        d3ma10 = hist_data.iloc[3]['ma10']
         #print('LAST_CLOSE: %s \nd0HIGH: %s \nMA4: %s \nMA9: %s \nd0MA5p: %s \nd0MA10p: %s \nd0MA5h: %s \nd0MA10h: %s \nd1MA5: %s \nd1MA10: %s \nd2MA5: %s \nd3MA5: %s' % (last_close, d0high, ma4, ma9, d0ma5p, d0ma10p, d0ma5h, d0ma10h, d1ma5, d1ma10, d2ma5, d3ma5))
         if (d1ma5 < d1ma10) and (d2ma5 < d3ma5 < d1ma5) and (d0ma5p > d0ma10p) and (d0ma5h > d0ma10h) and (d2ma10 > d2ma5) and (d1ma10 < d2ma10):
             #print(True)
@@ -416,14 +419,12 @@ class model4():
             high_ratio = high / last_close - 1
             low = futu_data['low'].min()
             low_ratio = low / last_close - 1
-            r = [(even_pirce, even_ratio), (close, close_ratio), (high, high_ratio), (low, low_ratio)]
+            self.df.loc[len(self.df)] = [code, last_close, d1ma5, d1ma10, d2ma5, d2ma10, d3ma5, d3ma10, even_pirce, even_ratio, close, close_ratio, high, high_ratio, low, low_ratio]
         else:
-            r = None
-        return r
+            pass
     def analyze_model4(self, code, date, rising_ratio):
         #print(code)
         r = self.model4(code, date, rising_ratio)
-        self.dd[code] = r
     def analyze(self):
         futures = []
         with ThreadPoolExecutor(max_workers=200) as executor:

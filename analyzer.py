@@ -402,10 +402,10 @@ class model4():
         d1ma5 = hist_data.iloc[1]['ma5']
         d1ma10 = hist_data.iloc[1]['ma10']
         d2ma5 = hist_data.iloc[2]['ma5']
-        d3ma5 = hist_data.iloc[3]['ma5']
+        d2ma10 = hist_data.iloc[2]['ma10']
         d3ma5 = hist_data.iloc[3]['ma5']
         #print('LAST_CLOSE: %s \nd0HIGH: %s \nMA4: %s \nMA9: %s \nd0MA5p: %s \nd0MA10p: %s \nd0MA5h: %s \nd0MA10h: %s \nd1MA5: %s \nd1MA10: %s \nd2MA5: %s \nd3MA5: %s' % (last_close, d0high, ma4, ma9, d0ma5p, d0ma10p, d0ma5h, d0ma10h, d1ma5, d1ma10, d2ma5, d3ma5))
-        if (d1ma5 < d1ma10) and (d2ma5 < d3ma5 < d1ma5) and (d0ma5p > d0ma10p) and (d0ma5h > d0ma10h) and ():
+        if (d1ma5 < d1ma10) and (d2ma5 < d3ma5 < d1ma5) and (d0ma5p > d0ma10p) and (d0ma5h > d0ma10h) and (d2ma10 > d2ma5) and (d1ma10 < d2ma10):
             #print(True)
             futu_data = data.loc[:d0]
             even_pirce = ma9 * 9 - ma4 * 8
@@ -450,9 +450,9 @@ class model4():
         print('close_win:')
         print(close_win)
        
-    
-    
-    
+
+a = model4('2018-09-20')
+a.analyze()
     
     
     

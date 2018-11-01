@@ -38,14 +38,14 @@ ftid = hs.set_index('code').drop(columns=['stock_owner','stock_name', 'lot_size'
 
 # MA5 MA10 某日交叉后走势
 
-code = '600123'
-select_date = '2018-05-09'
+code = '603819'
+select_date = '2018-10-31'
 start_date = datechange(select_date, -20)
 end_date = datechange(select_date, 8)
 
 data = ts.get_hist_data(code,start=start_date,end=end_date)
 d0 = data.loc[:select_date].index[-2]
-hist_data = data.loc[d0:][['close', 'ma5', 'ma10']]
+hist_data = data.loc[d0:][['close', 'ma5', 'ma10', 'ma20']]
 
 last_close = hist_data.iloc[1]['close']
 ma4 = hist_data[1:5]['close'].mean()
@@ -457,12 +457,13 @@ class model4s():
     def __init__(self, date, rising_ratio=1.04):
         self.date = date
         self.rising_ratio = rising_ratio
-        self.df = pd.DataFrame(columns=['code', 'LAST_CLOSE',  'EvenPrice', 'EvenRatio', 'd1MA5', 'd1MA10', 'd2MA5', 'd2MA10', 'd3MA5', 'd3MA10'])
+        self.df = pd.DataFrame(columns=['code', 'LAST_CLOSE',  'EvenPrice', 'EvenRatio', 'd1MA5', 'd1MA10', 'd2MA5', 'd2MA10', 'd3MA5', 'd3MA10', 'MA20_raising','D0'])
     def model4(self, code, select_date, rising_ratio):
         start_date = datechange(select_date, -20)
         end_date = self.date
         data = ts.get_hist_data(code, start=start_date,end=end_date)
-        hist_data = data[['close', 'ma5', 'ma10', 'high']]
+        hist_data = data[['close', 'ma5', 'ma10', 'ma20', 'high']]
+        d0 = data.index[0]
         last_close = hist_data.iloc[1]['close']
         ma4 = hist_data[0:4]['close'].mean()
         ma9 = hist_data[0:9]['close'].mean()
@@ -470,16 +471,23 @@ class model4s():
         d0ma10p = (ma9 * 9 + last_close * rising_ratio) / 10
         d1ma5 = hist_data.iloc[0]['ma5']
         d1ma10 = hist_data.iloc[0]['ma10']
+        d1ma20 = hist_data.iloc[0]['ma20']
         d2ma5 = hist_data.iloc[1]['ma5']
         d2ma10 = hist_data.iloc[1]['ma10']
+        d2ma20 = hist_data.iloc[1]['ma20']
         d3ma5 = hist_data.iloc[2]['ma5']
         d3ma10 = hist_data.iloc[2]['ma10']
+        d3ma20 = hist_data.iloc[2]['ma20']
         #print('LAST_CLOSE: %s \nd0HIGH: %s \nMA4: %s \nMA9: %s \nd0MA5p: %s \nd0MA10p: %s \nd0MA5h: %s \nd0MA10h: %s \nd1MA5: %s \nd1MA10: %s \nd2MA5: %s \nd3MA5: %s' % (last_close, d0high, ma4, ma9, d0ma5p, d0ma10p, d0ma5h, d0ma10h, d1ma5, d1ma10, d2ma5, d3ma5))
         if (d1ma5 < d1ma10) and (d2ma5 < d3ma5 < d1ma5) and (d0ma5p > d0ma10p) and (d2ma10 > d2ma5) and (d1ma10 < d2ma10):
             #print(True)
+            if d1ma20 > d2ma20 > d3ma20:
+                ma20_raising = True
+            else:
+                ma20_raising = False
             even_pirce = ma9 * 9 - ma4 * 8
             even_ratio = even_pirce / last_close - 1
-            self.df.loc[len(self.df)] = [code, last_close, even_pirce, even_ratio, d1ma5, d1ma10, d2ma5, d2ma10, d3ma5, d3ma10]
+            self.df.loc[len(self.df)] = [code, last_close, even_pirce, even_ratio, d1ma5, d1ma10, d2ma5, d2ma10, d3ma5, d3ma10, ma20_raising, d0]
         else:
             pass
     def analyze_model4(self, code, date, rising_ratio):
@@ -494,11 +502,11 @@ class model4s():
             for f in tqdm(as_completed(futures), **kwargs):
                 pass
     def result(self):
-        print(self.df)
+        print(self.df.to_string)
 
 
 
-a = model4s('2018-11-01')
+a = model4s('2018-08-25')
 a.analyze()
 
     

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 import futuquant as ft
-
+import pandas as pd
 
 
 def datechange(date, change):
@@ -452,6 +452,59 @@ class model4():
         print(close_win)
        
 
+    
+class model4s():
+    def __init__(self, date, rising_ratio=1.04):
+        self.date = date
+        self.rising_ratio = rising_ratio
+        self.df = pd.DataFrame(columns=['code', 'LAST_CLOSE',  'EvenPrice', 'EvenRatio', 'd1MA5', 'd1MA10', 'd2MA5', 'd2MA10', 'd3MA5', 'd3MA10'])
+    def model4(self, code, select_date, rising_ratio):
+        start_date = datechange(select_date, -20)
+        end_date = self.date
+        data = ts.get_hist_data(code, start=start_date,end=end_date)
+        hist_data = data[['close', 'ma5', 'ma10', 'high']]
+        last_close = hist_data.iloc[1]['close']
+        ma4 = hist_data[0:4]['close'].mean()
+        ma9 = hist_data[0:9]['close'].mean()
+        d0ma5p = (ma4 * 4 + last_close * rising_ratio) / 5
+        d0ma10p = (ma9 * 9 + last_close * rising_ratio) / 10
+        d1ma5 = hist_data.iloc[0]['ma5']
+        d1ma10 = hist_data.iloc[0]['ma10']
+        d2ma5 = hist_data.iloc[1]['ma5']
+        d2ma10 = hist_data.iloc[1]['ma10']
+        d3ma5 = hist_data.iloc[2]['ma5']
+        d3ma10 = hist_data.iloc[2]['ma10']
+        #print('LAST_CLOSE: %s \nd0HIGH: %s \nMA4: %s \nMA9: %s \nd0MA5p: %s \nd0MA10p: %s \nd0MA5h: %s \nd0MA10h: %s \nd1MA5: %s \nd1MA10: %s \nd2MA5: %s \nd3MA5: %s' % (last_close, d0high, ma4, ma9, d0ma5p, d0ma10p, d0ma5h, d0ma10h, d1ma5, d1ma10, d2ma5, d3ma5))
+        if (d1ma5 < d1ma10) and (d2ma5 < d3ma5 < d1ma5) and (d0ma5p > d0ma10p) and (d2ma10 > d2ma5) and (d1ma10 < d2ma10):
+            #print(True)
+            even_pirce = ma9 * 9 - ma4 * 8
+            even_ratio = even_pirce / last_close - 1
+            self.df.loc[len(self.df)] = [code, last_close, even_pirce, even_ratio, d1ma5, d1ma10, d2ma5, d2ma10, d3ma5, d3ma10]
+        else:
+            pass
+    def analyze_model4(self, code, date, rising_ratio):
+        #print(code)
+        r = self.model4(code, date, rising_ratio)
+    def analyze(self):
+        futures = []
+        with ThreadPoolExecutor(max_workers=200) as executor:
+            for i in ftid:
+                futures.append(executor.submit(self.analyze_model4, i, self.date, self.rising_ratio))
+            kwargs = {'total': len(futures)}
+            for f in tqdm(as_completed(futures), **kwargs):
+                pass
+    def result(self):
+        print(self.df)
+
+
+
+a = model4s('2018-11-01')
+a.analyze()
+
+    
+    
+    
+    
 a = model4('2018-09-20')
 a.analyze()
     
